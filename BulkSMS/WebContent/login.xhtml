@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta http-equiv="cache-control" content="max-age=0" />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="expires" content="0" />
+	<meta http-equiv="pragma" content="no-cache" />
+	<link rel="icon" type="image/png" href="images/favicon.ico" />
+
+	<script type="text/javascript">
+            history.pushState(null, null, 'login.xhtml');
+            window.addEventListener('popstate', function(event) {
+                  history.pushState(null, null, 'login.xhtml');
+            });
+      </script>
+
+	<title>Bulk SMS User Authentication</title>
+</h:head>
+<h:body id="pageBody">
+	<h:panelGroup layout="block" id="panel">
+		<h:form id="userLoginForm" enctype="multipart/form-data">
+			<p:fieldset id="fieldSet" legend="Bulk SMS - User Login">
+				<p:messages autoUpdate="true" />
+				<p:focus context="innerPanel" />
+				<h:panelGroup layout="block" id="innerPanel" style="padding:10px">
+					<h:panelGrid cellpadding="5" focus="username">
+						<h:outputLabel for="userName" value="Username:" />
+						<p:inputText id="userName" maxlength="20" size="30"
+							styleClass="padded" value="#{loginBean.userName}" required="true"
+							label="User Name:" onblur="this.value = this.value.trim();"
+							placeholder="Enter User Name..."
+							requiredMessage="User Name is a required field." />
+						<h:outputLabel for="password" value="Password:" />
+						<p:password id="password" value="#{loginBean.password}"
+							maxlength="20" size="30" styleClass="padded" label="Password:"
+							onblur="this.value = this.value.trim();" required="true"
+							placeholder="Enter Password..."
+							requiredMessage="Password is required." feedback="false" />
+						<h:commandButton id="loginButton" value="Login"
+							icon="ui-icon-extlink" action="#{loginBean.login}"
+							styleClass="padded" ajax="false">
+						</h:commandButton>
+					</h:panelGrid>
+				</h:panelGroup>
+			</p:fieldset>
+		</h:form>
+	</h:panelGroup>
+</h:body>
+</html>

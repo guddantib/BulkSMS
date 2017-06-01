@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta http-equiv="cache-control" content="max-age=0" />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="expires" content="0" />
+	<meta http-equiv="pragma" content="no-cache" />
+
+	<link rel="icon" type="image/png" href="images/favicon.ico" />
+
+	<script type="text/javascript">
+            history.pushState(null, null, 'index.xhtml');
+            window.addEventListener('popstate', function(event) {
+                  history.pushState(null, null, 'index.xhtml');
+            });
+      </script>
+
+	<title>Bulk SMS Transmission</title>
+
+	<f:facet name="first">
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport"
+			content="user-scalable=no, 
+                  width=device-width, 
+                  initial-scale=1.0, 
+                  maximum-scale=1.0" />
+	</f:facet>
+</h:head>
+<h:body id="pageBody">
+	<h:panelGroup layout="block" id="panel">
+
+		<p:idleMonitor timeout="30000" onidle="PF('alertExpire').show();">
+
+		</p:idleMonitor>
+
+		<p:dialog header="Session Expiry Warning.." widgetVar="alertExpire"
+			severity="alert" closable="false" closeOnEscape="false"
+			showEffect="explode" hideEffect="bounce" modal="true"
+			onShow="startIdleMonitor();">
+
+			<h:outputText value="Your browser session is expiring in " />
+			<h:outputText id="dialog-countdown" style="font-weight: bold;" />
+			<h:outputText value=" second." />
+			<br />
+			<h:outputText value="Do you want to continue your session?" />
+			<h:form>
+				<p:commandButton value="Continue" process="@this" update="@all"
+					onclick="stopCount()" />
+
+				<p:commandButton value="No" process="@this" update="@all"
+					action="#{loginBean.logout}" />
+				<p:remoteCommand name="logout" action="#{loginBean.logout}" />
+			</h:form>
+			<script type="text/javascript">
+                var TIME = 10; // in seconds
+                var countTimer = TIME;
+                var processTimer;
+                var timer_is_on = 0;
+
+                var countDownDiv = "dialog-countdown";
+                var txtCountDown = null;
+                if (!txtCountDown)
+                    txtCountDown = document.getElementById(countDownDiv);
+
+                function startIdleMonitor() {
+                    countTimer = TIME;
+                    txtCountDown.innerHTML = countTimer;
+                    doTimer();
+                }
+                function timedCount() {
+                    txtCountDown.innerHTML = countTimer;
+                    if (countTimer == 0) {
+                        stopCount();
+                        logout();
+                        return;
+                    }
+                    countTimer = countTimer - 1;
+                    processTimer = setTimeout("timedCount()", 1000);
+                }
+                function doTimer() {
+                    if (!timer_is_on) {
+                        timer_is_on = 1;
+                        timedCount();
+                    }
+                }
+                function stopCount() {
+                    clearTimeout(processTimer);
+                    timer_is_on = 0;
+                }
+            </script>
+		</p:dialog>
+		
+		<h:form>
+
+			<p:commandLink value="Logout" process="@this" update="@all"
+				action="#{loginBean.logout}" />
+			<p:remoteCommand name="logout" action="#{loginBean.logout}" />
+		</h:form>
+		
+		<h:form id="fileUploadForm" enctype="multipart/form-data">
+		
+		<h:outputLabel id="login" value="Logged in as: #{loginBean.userName}"
+			align="right" />
+			<p:fieldset id="fieldSet" legend="Bulk SMS Transmission">
+				<h:panelGroup layout="block" id="instructions">
+					<h:outputText
+						value="Browse to the list of MSISDNs to whom you want to send your SMS, supply the text for your SMS message, and also provide a Batch Name for this transmission." />
+				</h:panelGroup>
+				<p:messages autoUpdate="true" />
+				<h:panelGroup layout="block" id="innerPanel" style="padding: 10px">
+					<h:panelGrid cellpadding="10">
+						<h:inputFile id="uploadedFile" value="#{bulkSMSController.file}"
+							required="true" validator="#{bulkSMSController.validateFile}"
+							requiredMessage="Choose a file containing the list of MSISDNs to whom you want to send your SMS message." />
+						<h:panelGroup>
+							<p:inputTextarea id="message" maxlength="160" autoResize="true"
+								rows="2" cols="55" value="#{bulkSMSController.message}"
+								label="SMS text" onblur="this.value = this.value.trim();"
+								required="true"
+								placeholder="Your SMS message, with a maximum length of 160 characters"
+								counter="remainingChars"
+								counterTemplate="{0} characters remaining."
+								requiredMessage="The SMS text is required.">
+							</p:inputTextarea>
+							<h:outputText id="remainingChars" />
+						</h:panelGroup>
+						<p:inputText id="batchName" maxlength="50" size="50"
+							styleClass="padded" value="#{bulkSMSController.batchName}"
+							label="Batch Name" onblur="this.value = this.value.trim();"
+							required="true" placeholder="A name for the batch transmission"
+							requiredMessage="A name for the batch is required.">
+						</p:inputText>
+						<p:outputLabel for="schedule" value="Schedule Date:" />
+						<p:calendar id="schedule" mindate="#{loginBean.currentDate}"
+							value="#{bulkSMSController.scheduleDate}" showOn="button"
+							effect="fold" pattern="dd-MM-yyyy HH:mm:ss" required="true"
+							requiredMessage="Schedule Date required." />
+						<h:commandButton id="sendButton" value="Send"
+							icon="ui-icon-extlink" actionListener="#{bulkSMSController.send}"
+							update="fileUploadForm" styleClass="padded">
+						</h:commandButton>
+					</h:panelGrid>
+				</h:panelGroup>
+				<h:form id="smsBatch" enctype="multipart/form-data">
+					<h:panelGrid>
+						<p:dataTable id="batchesTable" var="batches"
+							value="#{dtSelectionView.batchList}" selectionMode="single"
+							selection="#{dtSelectionView.selectedBatch}"
+							rowKey="#{batches.batchId}" rows="5" paginator="true"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							rowsPerPageTemplate="5,10,15">
+							<f:facet name="header">
+                                          BULK SMS BATCHES
+                                      </f:facet>
+							<p:ajax event="rowSelect"
+								listener="#{dtSelectionView.onRowSelect}"
+								update=":fileUploadForm:smsBatch:batchDetail"
+								oncomplete="PF('batchDialog').show()" />
+							<p:column headerText="Batch ID" cellpadding="1"
+								sortBy="#{batches.batchId}" filterBy="#{batches.batchId}">
+								<h:outputText value="#{batches.batchId}" />
+							</p:column>
+							<p:column headerText="Batch Name" cellpadding="1"
+								sortBy="#{batches.batchName}" filterBy="#{batches.batchName}">
+								<h:outputText value="#{batches.batchName}" />
+							</p:column>
+							<p:column headerText="Schedule Date" cellpadding="1"
+								sortBy="#{batches.scheduleDate}"
+								filterBy="#{batches.scheduleDate}">
+								<h:outputText value="#{batches.scheduleDate}" />
+							</p:column>
+							<p:column headerText="Date Time" cellpadding="1"
+								sortBy="#{batches.dateTime}" filterBy="#{batches.dateTime}">
+								<h:outputText value="#{batches.dateTime}" />
+							</p:column>
+							<p:column headerText="Batch Size" cellpadding="1">
+								<h:outputText value="#{batches.smsList.size()}" />
+							</p:column>
+							<p:column headerText="Message Length" cellpadding="1">
+								<h:outputText value="#{batches.message.length()}" />
+							</p:column>
+						</p:dataTable>
+					</h:panelGrid>
+					<p:dialog header="Batch Information" widgetVar="batchDialog"
+						modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+						<p:outputPanel id="batchDetail" style="text-align:center;">
+							<p:panelGrid columns="2" rendered="true"
+								columnClasses="label,value">
+								<h:outputText value="Batch ID:" />
+								<h:outputText value="#{dtSelectionView.selectedBatch.batchId}" />
+
+								<h:outputText value="Batch Name:" />
+								<h:outputText value="#{dtSelectionView.selectedBatch.batchName}" />
+
+								<h:outputText value="Date Time:" />
+								<h:outputText value="#{dtSelectionView.selectedBatch.dateTime}" />
+
+								<h:outputText value="Schedule Date:" />
+								<h:outputText
+									value="#{dtSelectionView.selectedBatch.scheduleDate}">
+									<f:convertDateTime pattern="dd-MM-yyyy HH:mm:ss" />
+								</h:outputText>
+
+								<h:outputText value="Batch Size:" />
+								<h:outputText
+									value="#{dtSelectionView.selectedBatch.smsList.size()}" />
+
+								<h:outputText value="Message Length:" />
+								<h:outputText
+									value="#{dtSelectionView.selectedBatch.message.length()}" />
+							</p:panelGrid>
+						</p:outputPanel>
+					</p:dialog>
+				</h:form>
+			</p:fieldset>
+		</h:form>
+		<br />
+		
+	</h:panelGroup>
+</h:body>
+</html>
